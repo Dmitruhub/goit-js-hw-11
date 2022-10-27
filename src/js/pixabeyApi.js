@@ -1,4 +1,6 @@
 import axios from 'axios';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 const API_KEY = '30769771-5aaaebc258ceb203584e6c265';
 const BASE_URL = 'https://pixabay.com/api/';
 
@@ -9,7 +11,7 @@ export class PixabayfetchAPI {
   #perPage = 40;
   #params = {
     params: {
-      orientation: 'horisontal',
+      orientation: 'horizontal',
       key: API_KEY,
       safesearch: true,
       image_type: 'photo',

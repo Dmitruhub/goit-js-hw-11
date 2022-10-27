@@ -1,8 +1,6 @@
 import './css/styles.css';
 import Notiflix from 'notiflix';
 import { PixabayfetchAPI } from './js/pixabeyApi.js';
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
 import { createImageItem } from './js/createImageItem';
 
 const form = document.querySelector('.search-form');
@@ -26,14 +24,23 @@ async function onImageSearch(evt) {
   pixabayFetchAPI.query = userQuery;
   console.log(userQuery);
   try {
-    const { hits, totalHits, total } = await pixabayFetchAPI.fetchImage();
+    const { hits, totalHits } = await pixabayFetchAPI.fetchImage();
     console.log(hits);
+
+    if (totalHits === 0) {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      return;
+    }
     const marcup = createImageItem(hits);
     gallery.insertAdjacentHTML('beforeend', marcup);
-    const totalPages = await pixabayFetchAPI.calcTotalPages(totalHits);
+    lightbox.refresh();
+    const totalPages = pixabayFetchAPI.calcTotalPages(totalHits);
     console.log(totalPages);
     if (totalHits >= pixabayFetchAPI.perPage) {
       loadMoreBtn.classList.remove('is-hidden');
+      Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     }
     console.log(totalHits);
   } catch (error) {
@@ -46,9 +53,26 @@ function onLoadMore() {
   pixabayFetchAPI.incrementPage();
   if (!pixabayFetchAPI.isLoadMoreButton) {
     loadMoreBtn.classList.add('is-hidden');
+    Notiflix.Notify.warning(
+      "We're sorry, but you've reached the end of search results."
+    );
   }
   pixabayFetchAPI.fetchImage().then(({ hits }) => {
     const marcup = createImageItem(hits);
     gallery.insertAdjacentHTML('beforeend', marcup);
+    lightbox.refresh();
+    const { height: cardHeight } = document
+      .querySelector('.gallery')
+      .firstElementChild.getBoundingClientRect();
+
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
   });
 }
+
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
